@@ -1,0 +1,115 @@
+#include <a_samp>
+#include <a_dialog>
+
+new Float:spawnPoints[10][3] = {
+    { -2025.5, 135.7, 35.0 },
+    { -1387.7, 267.1, 15.0 },
+    { -2334.9, 142.2, 35.0 },
+    { -1811.6, 367.7, 30.0 },
+    { -2605.7, 113.4, 30.0 },
+    { -1900.9, 625.3, 30.0 },
+    { -1663.3, 1105.5, 20.0 },
+    { -2086.8, 716.1, 30.0 },
+    { -1593.5, 270.2, 20.0 },
+    { -1400.2, 735.6, 40.0 }
+};
+
+#define DIALOG_TEAM_SELECTION 1000
+
+// Takım isimleri ve renkleri
+new const teamNames[4][16] = {
+    "Kirmizi Askerler",
+    "Mavi Kartallar",
+    "Yesil Kaplanlar",
+    "Sari Yildirimlar"
+};
+
+new const teamColors[4] = {
+    0xFF0000, // Kırmızı
+    0x0000FF, // Mavi
+    0x00FF00, // Yeşil
+    0xFFFF00  // Sarı
+};
+
+new playerTeam[MAX_PLAYERS];
+
+public OnFilterScriptInit() {
+    print("Random Spawn ve Takim Secim Filterscript yuklendi.");
+    return 1;
+}
+
+public OnPlayerConnect(playerid) {
+    RandomSpawnPlayer(playerid);
+    ShowTeamSelectDialog(playerid);
+    return 1;
+}
+
+public OnPlayerSpawn(playerid) {
+    // Opsiyonel: spawn sonrası takım menüsü tekrar açılabilir
+    // ShowTeamSelectDialog(playerid);
+    return 1;
+}
+
+public OnPlayerCommandText(playerid, cmd[]) {
+    if (strcmp(cmd, "/spawn", true) == 0) {
+        RandomSpawnPlayer(playerid);
+        ShowTeamSelectDialog(playerid);
+        return 1;
+    }
+    return 0;
+}
+
+stock RandomSpawnPlayer(playerid) {
+    new spawnIndex = random(9);
+    new Float:x = spawnPoints[spawnIndex][0];
+    new Float:y = spawnPoints[spawnIndex][1];
+    new Float:z = spawnPoints[spawnIndex][2];
+
+    SetPlayerPos(playerid, x, y, z);
+    SetPlayerHealth(playerid, 100.0);
+    SetPlayerArmour(playerid, 0);
+    playerTeam[playerid] = -1; // Takım seçilmedi
+}
+
+stock ShowTeamSelectDialog(playerid) {
+    new string[512];
+    format(string, sizeof(string),
+        "Takim Seciniz:\n"
+        "1. %s\n"
+        "2. %s\n"
+        "3. %s\n"
+        "4. %s",
+        teamNames[0], teamNames[1], teamNames[2], teamNames[3]
+    );
+
+    ShowPlayerDialog(playerid, DIALOG_TEAM_SELECTION, DIALOG_STYLE_LIST, "Takim Secimi", string, "Sec", "Iptal");
+}
+
+public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]) {
+    if (dialogid == DIALOG_TEAM_SELECTION) {
+        if (response) {
+            if (listitem >= 0 && listitem < 4) {
+                playerTeam[playerid] = listitem;
+                SetPlayerColor(playerid, teamColors[listitem]);
+                SetPlayerStat(playerid, STAT_MUSCLE, 50); // Kas gücü 50 yap
+
+                // Silahları ver
+                GivePlayerWeapon(playerid, WEAPON_AK47, 100);
+                GivePlayerWeapon(playerid, WEAPON_KNIFE, 1);
+
+                SendClientMessage(playerid, 0x00FF00FF, "Takiminiz secildi ve silahlariniz verildi!");
+                new msg[64];
+                format(msg, sizeof(msg), "Secilen takim: %s", teamNames[listitem]);
+                SendClientMessage(playerid, 0x00FFFFFF, msg);
+            }
+            else {
+                SendClientMessage(playerid, 0xFF0000FF, "Gecersiz takim secimi.");
+            }
+        }
+        else {
+            SendClientMessage(playerid, 0xFFFF00FF, "Takim secimi iptal edildi.");
+        }
+        return 1;
+    }
+    return 0;
+}
