@@ -1,0 +1,9 @@
+#include <a_samp>
+
+new Float:spawnPoints[10][3] = {
+    { -2025.5, 135.7, 35.0 },   // Glen Park
+    { -1387.7, 267.1, 15.0 },   // Santa Maria Beach
+    { -2334.9, 142.2, 35.0 },   // Mulholland
+    { -1811.6, 367.7, 30.0 },   // Market
+    { -2605.7, 113.4, 30.0 },   // Idlewood
+    { -1900.9, 625.3, 30.0 },
